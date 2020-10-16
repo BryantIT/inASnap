@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
 
 
-  resources :sessions
+  # resources :sessions
   resources :users
   resources :photographers do
     resources :reviews, :only => [:create, :new, :index, :update]
@@ -15,11 +15,13 @@ Rails.application.routes.draw do
   get '/signup', to: 'users#new'
   post '/signup', to: 'users#create'
 
+  get 'auth/github', :as => 'github_auth'
+  match  'auth/:provider/callback', to: 'sessions#create', :via => [:get, :post]
   get '/login', to: 'sessions#new'
-  post '/login', to: 'sessions#create', as: 'login_user'
+  # post '/login', to: 'sessions#create', as: 'login_user'
 
-  get '/auth/:provider/callback', to: 'sessions#create', via: [:get, :post]
-  get 'auth/facebook', as: 'facebook_login'
+
+  # get 'auth/facebook', as: 'facebook_login'
   #get '/auth/:provider/callback', to: 'sessions#create', via: [:get, :post]
 
   get '/users', to: 'photographers#index'

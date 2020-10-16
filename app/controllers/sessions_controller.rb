@@ -1,49 +1,31 @@
+# frozen_string_literal: true
+
 class SessionsController < ApplicationController
-   # before_action :redirect_logged_in, except: [:destroy]
+  # before_action :redirect_logged_in, except: [:destroy]
+  skip_before_action :verify_authenticity_token, only: :create
 
-    def new
-       # @user = User.new 
-        #login view
-    end 
+  def new
+    # @user = User.new
+    # login view
+  end
 
-    def create #omniauth log in
-        if auth_hash = request.env['omniauth.auth']
-            
-           oauth_email = request.env['omniauth.auth']['email']
-            if @user = User.find_by(:email => oauth_email)
-                session[:user_id] = @user.id
-            else
-                @user = User.create(:email => oauth_email, :password => SecureRandom.hex)
-                @user.save
-                session[:user_id] = @user.id
+  def create
+    user = User.find_or_create_by(provider: auth[:provider], uid: auth[:uid]) do |user|
+      user.username = auth[:info][:username]
+    end
 
-               # redirect_to photographers_path(@user)
-            end 
+    session[:user_id] = user.id
+    redirect_to photographers_path
 
-        else #regular log in
-            @user = User.find_by_username(params[:username])
-                if @user == nil || @user.authenticate(params[:password]) == false
-                flash[:message] = "User not found."
-                redirect_to login_path
-                else
-                session[:user_id] = @user.id
-                redirect_to photographers_path(@user)
-                    # byebug
-                end
-        end         
-    end 
+  end
 
+  def destroy
+    session.clear
+    redirect_to welcome_path
+  end
 
-    def destroy
-        session.clear 
-        redirect_to welcome_path
-    end 
-
-    private
-
-    def auth 
-        request.env['omniauth.auth']
-    end 
-
-
-end 
+  private
+  def auth
+    request.env['omniauth.auth']
+  end
+end

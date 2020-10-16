@@ -12,13 +12,14 @@ Bundler.require(*Rails.groups)
 module InASnap
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.before_configuration do
-      env_file = File.join(Rails.root, 'config', 'local_env.yml')
-      if File.exist?(env_file)
-        YAML.safe_load(File.open(env_file)).each do |key, value|
-          ENV[key.to_s] = value
-        end
-      end
+    # If using local_env
+    env_file = File.join(Rails.root, 'config', 'local_env.yml')
+    YAML.load(File.open(env_file)).each do |key, value|
+      ENV[key.to_s] = value
+    end if File.exists?(env_file)
+
+    config.middleware.use OmniAuth::Builder do
+      provider :github, ENV['GITHUB_KEY'], ENV['GITHUB_SECRET']
     end
     config.load_defaults 6.0
 
